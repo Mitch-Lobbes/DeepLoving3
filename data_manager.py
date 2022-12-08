@@ -3,7 +3,7 @@ import torchvision
 import torchvision.transforms as transforms
 
 class DataManager:
-    def __init__(self, dataset: str, batch_size: int, train_size: int, val_size: int) -> None:
+    def __init__(self, dataset: str, batch_size: int, train_size: int = 50000, val_size: int = 10000) -> None:
         if dataset == 'mnist':
             train_val = torchvision.datasets.MNIST(root='data', train=True, download=True, transform=transforms.ToTensor())
             train, val = torch.utils.data.random_split(train_val, [train_size, val_size])
