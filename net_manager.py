@@ -5,10 +5,10 @@ import os
 from data_manager import DataManager
 
 class NetManager:
-    def __init__(self, net: nn.Module, data_manager: DataManager , num_epochs: int = 2, learning_rate: float = 0.001,
+    def __init__(self, net: nn.Module, data_managers: list[DataManager] , num_epochs: int = 2, learning_rate: float = 0.001,
             betas: tuple[float, float] = (0.9, 0.999), weight_decay: float = 0.0) -> None:
         self.net = net
-        self.data_manager = data_manager
+        self.data_managers = data_managers
         self.num_epochs = num_epochs
         self.learning_rate = learning_rate
         self.criterion = nn.CrossEntropyLoss()
@@ -41,25 +41,35 @@ class NetManager:
 
     def _single_epoch(self):
         epoch_loss = 0.0
-        for data in self.data_manager.trainloader:
-            inputs, labels = data[0].to(self.device), data[1].to(self.device)
+        for data_manager in self.data_managers:
+            for data in data_manager.trainloader:
+                inputs, labels = data[0].to(self.device), data[1].to(self.device)
 
-            self.optimizer.zero_grad()
+                self.optimizer.zero_grad()
 
-            outputs = self.net(inputs)
-            loss = self.criterion(outputs, labels)
-            loss.backward()
-            self.optimizer.step()
+                outputs = self.net(inputs)
+                loss = self.criterion(outputs, labels)
+                loss.backward()
+                self.optimizer.step()
 
-            epoch_loss += loss.item()
-        epoch_loss /= len(self.data_manager.trainloader)
-        val_acc = self._get_accuracy(self.data_manager.valloader)
-        train_acc = self._get_accuracy(self.data_manager.trainloader)
+                epoch_loss += loss.item()
+        epoch_loss /= len(data_manager.trainloader)
+        val_acc = self._get_accuracy(data_manager.valloader)
+        train_acc = self._get_accuracy(data_manager.trainloader)
         return epoch_loss, train_acc, val_acc
 
     def test(self, print_results: str = False) -> tuple[float, dict[int, float]]:
-        self.test_accuracy = self._get_accuracy(self.data_manager.testloader)
-        self.test_class_accuracies = self._get_class_accuracy(self.data_manager.testloader)
+        for data_manager in self.data_managers:
+            self.test_accuracy += self._get_accuracy(data_manager.testloader)
+            class_accuracy = self._get_class_accuracy(data_manager.testloader)
+            for k, v in class_accuracy.items():
+                if k in self.test_class_accuracies.keys():
+                    self.test_class_accuracies[k] += v
+                else:
+                    self.test_class_accuracies[k] = v
+        self.test_accuracy /= len(self.data_managers)
+        for k in self.test_class_accuracies.keys():
+            self.test_class_accuracies[k] /= len(self.data_managers)
 
         if print_results:
             print(f'Total test accuracy: {self.test_accuracy * 100:.1f} %')

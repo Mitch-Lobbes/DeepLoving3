@@ -51,7 +51,10 @@ class DataManager:
     @staticmethod
     def create_resized(batch_size: int):
         folder = os.path.join('data', 'mnist-varres')
-        train, val, test = DataManager.get_data_resized(folder=folder, train_size=50000, val_size=10000)
+        train, val, test = DataManager.get_data_resized(folder=folder, 
+            train_size=50000, 
+            val_size=10000, 
+            transform=Transformations.Resize)
         trainloader, valloader, testloader = DataManager.get_data_loaders(train, val, test, batch_size)
         return DataManager(batch_size, trainloader, valloader, testloader)
 
@@ -60,9 +63,12 @@ class DataManager:
         sizes = ['small', 'med', 'large']
         train_sizes = [15931, 16064, 16006]
         val_sizes = [3982, 4016, 4001]
-        train, val, test = DataManager.get_data_different_sizes('data', sizes, train_sizes, val_sizes)
-        trainloader, valloader, testloader = DataManager.get_data_loaders(train, val, test, batch_size)
-        return DataManager(batch_size, trainloader, valloader, testloader)
+        train_data, val_data, test_data = DataManager.get_data_different_sizes('data', sizes, train_sizes, val_sizes)
+        data_managers = []
+        for train, val, test in zip(train_data, val_data, test_data):
+            trainloader, valloader, testloader = DataManager.get_data_loaders(train, val, test, batch_size)
+            data_managers.append(DataManager(batch_size, trainloader, valloader, testloader))
+        return data_managers
 
     @staticmethod
     def get_data_mnist(folder: str, train_size: int, val_size: int):
@@ -73,11 +79,11 @@ class DataManager:
         return train, val, test
 
     @staticmethod
-    def get_data_resized(folder: str, train_size: int, val_size: int):
+    def get_data_resized(folder: str, train_size: int, val_size: int, transform):
         train_folder = os.path.join(folder, 'train')
         test_folder = os.path.join(folder, 'test')
-        train_val = torchvision.datasets.ImageFolder(root=train_folder, transform=Transformations.Resize)
-        test = torchvision.datasets.ImageFolder(root=test_folder, transform=Transformations.Resize)
+        train_val = torchvision.datasets.ImageFolder(root=train_folder, transform=transform)
+        test = torchvision.datasets.ImageFolder(root=test_folder, transform=transform)
         train, val = torch.utils.data.random_split(train_val, [train_size, val_size])
 
         return train, val, test
@@ -89,25 +95,24 @@ class DataManager:
         test_data = []
         for size, train_size, val_size in zip(sizes, train_sizes, val_sizes):
             size_folder_name = 'mnist-varres-' + size
-            temp_train, temp_val, temp_test = DataManager.get_data_resized(os.path.join(folder, size_folder_name), train_size, val_size)
+            temp_train, temp_val, temp_test = DataManager.get_data_resized(
+                os.path.join(folder, size_folder_name), 
+                train_size, 
+                val_size,
+                transform=Transformations.Grayscale)
+
             train_data.append(temp_train)
             val_data.append(temp_val)
             test_data.append(temp_test)
 
-        train = DataManager.concat_data(*train_data)
-        val = DataManager.concat_data(*val_data)
-        test = DataManager.concat_data(*test_data)
-
-        return train, val, test
+        return train_data, val_data, test_data
 
     @staticmethod
     def concat_data(*subsets):
         datasets = []
         for subset in subsets:
             if isinstance(subset, torch.utils.data.dataset.Subset):
-                print(type(subset))
                 datasets.append(DatasetFromSubset(subset))
-                #datasets.append(torch.utils.data.Dataset(subset))
             else:
                 datasets.append(subset)
         return torch.utils.data.ConcatDataset(datasets)

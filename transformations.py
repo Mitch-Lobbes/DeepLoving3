@@ -18,3 +18,8 @@ class Transformations:
         transforms.Resize(size=(28,28)), 
         transforms.Grayscale(), 
         transforms.ToTensor()])
+        
+    Grayscale = transforms.Compose([
+        transforms.Grayscale(),
+        transforms.ToTensor()
+    ])
