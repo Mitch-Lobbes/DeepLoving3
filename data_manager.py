@@ -27,23 +27,23 @@ class DataManager:
         self.valloader = valloader
         self.testloader = testloader
 
-        # Setup for question 9
-        # elif dataset == "mnist" and transform == True:
-        #     test = torchvision.datasets.MNIST(root='data', train=False, download=True, transform=transforms.ToTensor())
-        #     train_val = torchvision.datasets.MNIST(root='data', train=True, download=True, transform=transforms.ToTensor())
-        #     train, val = torch.utils.data.random_split(train_val, [train_size, val_size])
-        #     split_1, split_2, split_3, split_4, split_5, remain_train = torch.utils.data.random_split(train, [1000, 1000, 1000, 1000, 1000, 45000])
-
-        #     augm_1 = DatasetFromSubset(subset=split_1, transform=Transformations.CenterCropSmall)
-        #     augm_2 = DatasetFromSubset(subset=split_2, transform=Transformations.CenterCropLarge)
-        #     augm_3 = DatasetFromSubset(subset=split_3, transform=Transformations.ColorJitter)
-        #     augm_4 = DatasetFromSubset(subset=split_4, transform=Transformations.GaussianBlur)
-        #     augm_5 = DatasetFromSubset(subset=split_5, transform=Transformations.RandomRotation)
-
-        #     train = torch.utils.data.ConcatDataset([augm_1, augm_2, augm_3, augm_4, augm_5, train])
-
     @staticmethod
     def create_mnist(batch_size: int):
+        train, val, test = DataManager.get_data_mnist('data', train_size=50000, val_size=10000)
+        split_1, split_2, split_3, split_4, split_5, _ = torch.utils.data.random_split(train, [1000, 1000, 1000, 1000, 1000, 45000])
+
+        augm_1 = DatasetFromSubset(subset=split_1, transform=Transformations.CenterCropSmall)
+        augm_2 = DatasetFromSubset(subset=split_2, transform=Transformations.CenterCropLarge)
+        augm_3 = DatasetFromSubset(subset=split_3, transform=Transformations.ColorJitter)
+        augm_4 = DatasetFromSubset(subset=split_4, transform=Transformations.GaussianBlur)
+        augm_5 = DatasetFromSubset(subset=split_5, transform=Transformations.RandomRotation)
+
+        train = torch.utils.data.ConcatDataset([augm_1, augm_2, augm_3, augm_4, augm_5, train])
+        trainloader, valloader, testloader = DataManager.get_data_loaders(train, val, test, batch_size)
+        return DataManager(batch_size, trainloader, valloader, testloader)
+
+    @staticmethod
+    def create_transformations(batch_size: int):
         train, val, test = DataManager.get_data_mnist('data', train_size=50000, val_size=10000)
         trainloader, valloader, testloader = DataManager.get_data_loaders(train, val, test, batch_size)
         return DataManager(batch_size, trainloader, valloader, testloader)
