@@ -56,6 +56,7 @@ class VAE(nn.Module):
         else:
             return NELBO.mean()
 
-    def sample(self, batch_size=64):
+    def sample(self, batch_size=64, device='cpu'):
         z = self.prior.sample(batch_size)
+        z.to(device)
         return self.decoder.sample(z)
