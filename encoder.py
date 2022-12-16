@@ -62,4 +62,6 @@ class Encoder(nn.Module):
         x: torch.tensor, with dimensionality (mini-batch, x_dim)
              a mini-batch of data points
         """
-        return self.encode(x)
+        mu, log_var = self.encode(x)
+
+        return self.reparameterization(mu, log_var)

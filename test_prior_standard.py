@@ -3,19 +3,20 @@ import torch
 
 class TestPrior:
     def __init__(self) -> None:
-        length = 2
-        self.prior = Prior(length)
+        self.length = 2
+        self.batch_size = 6
+        self.latent_dim = 265
+        self.prior = Prior(self.length)
 
     def test_output_shapes(self):
-        x = torch.zeros((self.batch_size, self.img_channels, self.img_size, self.img_size))
         z = torch.zeros((self.batch_size, self.latent_dim))
-        x_hat = self.decoder.decode(z)
-        log_p = self.decoder.forward(z, x)
+        log_prob = self.prior.log_prob(z)
+        sample = self.prior.sample(self.batch_size)
 
-        assert x_hat.shape == (self.batch_size, self.img_channels, self.img_size, self.img_size)
-        assert log_p.shape == (self.batch_size, self.img_channels, self.img_size, self.img_size)
+        assert log_prob.shape == z.shape
+        assert sample.shape == (self.batch_size, self.length)
         
 if __name__=='__main__':
-    test_decoder = TestDecoder()
-    test_decoder.test_output_shapes()
+    test_prior = TestPrior()
+    test_prior.test_output_shapes()
 

@@ -11,7 +11,7 @@ class TestEncoder:
 
     def test_output_shapes(self):
         x = torch.zeros((self.batch_size, self.img_channels, self.img_size, self.img_size))
-        mu, log_var = self.encoder.get_log_probs(x)
+        mu, log_var = self.encoder.encode(x)
         z1 = self.encoder.reparameterization(mu, log_var)
         z2 = self.encoder.forward(x)
 
