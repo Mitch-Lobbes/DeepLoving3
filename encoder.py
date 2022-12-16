@@ -9,13 +9,13 @@ import torch.nn as nn
 # Moreover, forward must return the log-probability of variational posterior for given x, i.e., log q(z|x)
 
 class Encoder(nn.Module):
-    def __init__(self, img_channels, img_size, z_dim):
+    def __init__(self, img_channels, img_size, latent_dim):
         super(Encoder, self).__init__()
         num_features = 32 * img_size * img_size
         self.conv1 = nn.Conv2d(img_channels, 16, 5, padding=2)
         self.conv2 = nn.Conv2d(16, 32, 5, padding=2)
-        self.fc_mu = nn.Linear(num_features, z_dim)
-        self.fc_var = nn.Linear(num_features, z_dim)
+        self.fc_mu = nn.Linear(num_features, latent_dim)
+        self.fc_var = nn.Linear(num_features, latent_dim)
 
     @staticmethod
     def reparameterization(mu, log_var):
@@ -42,7 +42,7 @@ class Encoder(nn.Module):
         else:
             return self.reparameterization(mu_e, log_var_e)
 
-    def get_log_probs(self, x):
+    def encode(self, x):
         model = nn.Sequential(
             self.conv1,
             nn.ReLU(),
@@ -50,7 +50,7 @@ class Encoder(nn.Module):
             nn.ReLU(),
             nn.Flatten()
         )
-        conv_output = model(x)
+        conv_output =  model(x)
         mu = self.fc_mu(conv_output)
         log_var = self.fc_var(conv_output)
 
@@ -62,6 +62,4 @@ class Encoder(nn.Module):
         x: torch.tensor, with dimensionality (mini-batch, x_dim)
              a mini-batch of data points
         """
-        mu, log_var = self.get_log_probs(x)
-        
-        return self.reparameterization(mu, log_var)
+        return self.encode(x)
