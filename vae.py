@@ -47,7 +47,7 @@ class VAE(nn.Module):
         z = self.encoder.reparameterization(mu, log_var)
 
         # Negative ELBO (NELBO)
-        RE = self.decoder.forward(z, x)
+        RE = self.decoder.forward(z, x, reduction=reduction)
         KL = log_normal_diag(z, mu, log_var, reduction=reduction) - log_standard_normal(z, reduction=reduction)
         NELBO = -(RE - KL)
 

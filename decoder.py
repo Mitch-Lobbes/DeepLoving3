@@ -71,7 +71,7 @@ class Decoder(nn.Module):
         
         return self.forward(z, x)
 
-    def forward(self, z, x):
+    def forward(self, z, x, reduction='sum'):
         """
         Compute the log probability: log p(x|z). 
         z: torch.tensor, with dimensionality (mini-batch, z_dim)
@@ -79,6 +79,6 @@ class Decoder(nn.Module):
         """
         x_hat = self.decode(z)
 
-        log_p = log_normal_diag(x, x_hat, log_var=torch.Tensor([0.0]))
+        log_p = log_normal_diag(x, x_hat, log_var=torch.Tensor([0.0]), reduction=reduction)
 
         return log_p
