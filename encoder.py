@@ -50,6 +50,7 @@ class Encoder(nn.Module):
             nn.ReLU(),
             nn.Flatten()
         )
+        
         conv_output =  model(x)
         mu = self.fc_mu(conv_output)
         log_var = self.fc_var(conv_output)
