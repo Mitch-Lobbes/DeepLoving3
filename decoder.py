@@ -36,6 +36,7 @@ class Decoder(nn.Module):
     def __init__(self, img_channels, img_size, latent_dim):
         super(Decoder, self).__init__()
         num_features = 32 * img_size * img_size
+        self.img_channels = img_channels
         self.img_size = img_size
         self.fc1 = nn.Linear(latent_dim, num_features)
         self.conv1 = nn.ConvTranspose2d(32, 16, 5, padding=2)
@@ -51,6 +52,7 @@ class Decoder(nn.Module):
             self.conv2,
             nn.Sigmoid()
         )
+        
         x_hat = model(z)
 
         return x_hat
@@ -65,7 +67,7 @@ class Decoder(nn.Module):
         return:
         x: torch.tensor, with dimensionality (mini-batch, x_dim)
         """
-        x = torch.zeros_like(z)
+        x = torch.zeros((z.shape[0], self.img_channels, self.img_size, self.img_size))
         
         return self.forward(z, x)
 

@@ -18,7 +18,7 @@ def log_standard_normal(x, reduction=None, dim=None):
         return log_p
 
 class Prior(nn.Module):
-    def __init__(self, length=2):
+    def __init__(self, length):
         super(Prior, self).__init__()
 
         self.length = length 
